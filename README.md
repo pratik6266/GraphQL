@@ -183,55 +183,112 @@ PORT=4000
 
 ### Queries
 
+#### Get All Todos
 ```graphql
-# Get all todos
 query GetTodos {
-  todos {
+  getTodos {
     id
     title
     completed
-    userId
-  }
-}
-
-# Get single todo
-query GetTodo($id: Int!) {
-  todo(id: $id) {
-    id
-    title
-    completed
-    userId
+    user {
+      id
+      name
+      email
+    }
   }
 }
 ```
 
+**Example Command:**
+```bash
+curl -X POST http://localhost:4000/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "query GetTodos { getTodos { id title completed user { id name email } } }"}'
+```
+
+#### Get Single Todo
+```graphql
+query GetTodo($id: Int!) {
+  getTodo(id: $id) {
+    id
+    title
+    completed
+    user {
+      id
+      name
+      email
+    }
+  }
+}
+```
+
+**Example Command:**
+```bash
+curl -X POST http://localhost:4000/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "query GetTodo($id: Int!) { getTodo(id: $id) { id title completed user { id name email } } }", "variables": {"id": 1}}'
+```
+
 ### Mutations
 
+#### Create Todo
 ```graphql
-# Create todo
 mutation CreateTodo($title: String!, $userId: Int!) {
   createTodo(title: $title, userId: $userId) {
     id
     title
     completed
-    userId
+    user {
+      id
+      name
+      email
+    }
   }
 }
+```
 
-# Update todo
+**Example Command:**
+```bash
+curl -X POST http://localhost:4000/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "mutation CreateTodo($title: String!, $userId: Int!) { createTodo(title: $title, userId: $userId) { id title completed user { id name email } } }", "variables": {"title": "Learn GraphQL", "userId": 1}}'
+```
+
+#### Update Todo
+```graphql
 mutation UpdateTodo($id: Int!, $title: String, $completed: Boolean) {
   updateTodo(id: $id, title: $title, completed: $completed) {
     id
     title
     completed
-    userId
+    user {
+      id
+      name
+      email
+    }
   }
 }
+```
 
-# Delete todo
+**Example Command:**
+```bash
+curl -X POST http://localhost:4000/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "mutation UpdateTodo($id: Int!, $title: String, $completed: Boolean) { updateTodo(id: $id, title: $title, completed: $completed) { id title completed user { id name email } } }", "variables": {"id": 1, "title": "Updated title", "completed": true}}'
+```
+
+#### Delete Todo
+```graphql
 mutation DeleteTodo($id: Int!) {
   deleteTodo(id: $id)
 }
+```
+
+**Example Command:**
+```bash
+curl -X POST http://localhost:4000/graphql \
+  -H "Content-Type: application/json" \
+  -d '{"query": "mutation DeleteTodo($id: Int!) { deleteTodo(id: $id) }", "variables": {"id": 1}}'
 ```
 
 ## 🛠 Tech Stack

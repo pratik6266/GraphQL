@@ -121,26 +121,24 @@ export class TodoStore {
 
       updates.push(`updated_at = CURRENT_TIMESTAMP`);
 
-      const query = `
+      // First update the todo
+      const updateQuery = `
         UPDATE todos
         SET ${updates.join(', ')}
         WHERE id = $${paramCount}
-        RETURNING
-          todos.id,
-          todos.title,
-          todos.completed,
-          json_build_object(
-            'id', users.id,
-            'name', users.name,
-            'email', users.email
-          ) as user
-        FROM users
-        WHERE todos.id = $${paramCount} AND todos.user_id = users.id
       `;
       values.push(id);
 
-      const { rows } = await pool.query(query, values);
-      return rows[0] || null;
+      console.log('Update query:', updateQuery);
+      console.log('Values:', values);
+
+      const updateResult = await pool.query(updateQuery, values);
+      console.log('Update result:', updateResult);
+
+      // Then fetch the updated todo with user info
+      const result = await TodoStore.getTodoById(id);
+      console.log('Fetched updated todo:', result);
+      return result;
     } catch (error) {
       console.error('Error updating todo:', error);
       throw new Error('Failed to update todo');
