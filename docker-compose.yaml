@@ -1,0 +1,95 @@
+services:
+  # PostgreSQL Database
+  database:
+    image: postgres:16-alpine
+    container_name: todo_postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=graphql_user
+      - POSTGRES_PASSWORD=graphql_password
+      - POSTGRES_DB=graphql_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - todo_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U graphql_user -d graphql_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Flyway Migration
+  flyway:
+    image: flyway/flyway:latest
+    container_name: todo_flyway
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      - FLYWAY_URL=jdbc:postgresql://database:5432/graphql_db
+      - FLYWAY_USER=graphql_user
+      - FLYWAY_PASSWORD=graphql_password
+      - FLYWAY_SCHEMAS=public
+      - FLYWAY_DEFAULT_SCHEMA=public
+      - FLYWAY_BASELINE_ON_MIGRATE=true
+    volumes:
+      - ./server/migrations:/flyway/sql
+    networks:
+      - todo_network
+    command: migrate
+
+  # Backend GraphQL Server
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: todo_backend
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+      flyway:
+        condition: service_completed_successfully
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - DB_HOST=database
+      - DB_PORT=5432
+      - DB_NAME=graphql_db
+      - DB_USER=graphql_user
+      - DB_PASSWORD=graphql_password
+    ports:
+      - "4000:4000"
+    networks:
+      - todo_network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4000/graphql', (r) => process.exit(r.statusCode === 400 ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Frontend React App
+  frontend:
+    build:
+      context: ./client/graphql-client
+      dockerfile: Dockerfile
+      args:
+        - VITE_GRAPHQL_ENDPOINT=http://localhost:4000/graphql
+    container_name: todo_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3000:80"
+    networks:
+      - todo_network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  todo_network:
+    driver: bridge

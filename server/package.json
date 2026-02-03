@@ -1,0 +1,38 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "db:migrate": "docker compose run --rm flyway migrate",
+    "db:clean": "docker compose run --rm flyway clean",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.25.0",
+  "dependencies": {
+    "@apollo/server": "^5.3.0",
+    "@as-integrations/express5": "^1.1.2",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "graphql": "^16.12.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/body-parser": "^1.19.6",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^25.2.0",
+    "@types/pg": "^8.16.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}

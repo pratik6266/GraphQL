@@ -1,0 +1,45 @@
+services:
+  database:
+    image: postgres:latest
+    container_name: graphql_postgres_db
+    environment:
+      - POSTGRES_USER=graphql_user
+      - POSTGRES_PASSWORD=graphql_password
+      - POSTGRES_DB=graphql_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    networks:
+      - graphql_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U graphql_user -d graphql_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  flyway:
+    image: flyway/flyway:latest
+    container_name: graphql_flyway
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      - FLYWAY_URL=jdbc:postgresql://database:5432/graphql_db
+      - FLYWAY_USER=graphql_user
+      - FLYWAY_PASSWORD=graphql_password
+      - FLYWAY_SCHEMAS=public
+      - FLYWAY_DEFAULT_SCHEMA=public
+      - FLYWAY_BASELINE_ON_MIGRATE=true
+    volumes:
+      - ./migrations:/flyway/sql
+    networks:
+      - graphql_network
+    command: migrate
+
+volumes:
+  pgdata:
+
+networks:
+  graphql_network:
+    driver: bridge
