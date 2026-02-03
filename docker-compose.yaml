@@ -1,7 +1,7 @@
 services:
   # PostgreSQL Database
   database:
-    image: postgres:16-alpine
+    image: postgres:latest
     container_name: todo_postgres
     restart: unless-stopped
     environment:
